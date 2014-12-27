@@ -12,7 +12,7 @@ var header;
 
 function readFile( fileName )
 {
-    d3.tsv( "test.csv", function ( error, csv )
+    d3.tsv( fileName, function ( error, csv )
     {
         // Header columns
         fullHeader = d3.keys(csv[0])[0];
@@ -25,6 +25,7 @@ function readFile( fileName )
         });
 
         dragAndDrop(".columnName");
+        createDataHeader();
 
         // Data
         var data = crossfilter( csv );
@@ -64,8 +65,18 @@ function dragAndDrop(elementClass)
     });
 }
 
-function createDataTable( countId, tableId, allD, allG, tableD )
-{
+/* ************************************** */
+/* **************** DATA **************** */
+/* ************************************** */
+function createDataHeader(){
+    $.each(header, function(i,d){
+        var thElement = $("<th></th>");
+        thElement.html("<span>"+d+"</span>");
+        $("#headerData").append(thElement);
+    })
+}
+
+function createDataTable( countId, tableId, allD, allG, tableD ){
     dc.dataCount( countId )
         .dimension( allD )
         .group( allG );
@@ -86,8 +97,7 @@ function createDataTable( countId, tableId, allD, allG, tableD )
     dc.renderAll();
 }
 
-function createTableColumns(d)
-{
+function createTableColumns(d){
     var arrayFunction = new Array();
     $.each(header, function(i,dd)
     {
@@ -95,13 +105,6 @@ function createTableColumns(d)
     });
 
     return arrayFunction;
-//    var bob = new Object();
-//    bob.aa = "paf";
-//    var obj = jQuery.parseJSON( '{ "name": "rr,zz,ee" }' );
-//    return obj;
-
-//    return arrayFunction.toString();
-//    return ["zz", "ddd", "dddd"];
 }
 
 //    $(".btn").on({
