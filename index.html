@@ -1,0 +1,166 @@
+<HTML>
+
+<HEAD>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Full Objects</title>
+    <link rel="icon" href="https://avatars3.githubusercontent.com/u/6544448?s=460" type="image/png">
+
+    <link rel="stylesheet" type="text/css" href="http://getbootstrap.com/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="dc.js-master/web/css/dc.css">
+
+    <script type="text/javascript" src="jquery-1.9.1.js"></script>
+    <script type="text/javascript" src="jquery-ui-1.11.2/jquery-ui.js"></script>
+    <!--<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>-->
+    <script type="text/javascript" src="d3.js"></script>
+    <script type="text/javascript" src="dc.js-master/web/js/crossfilter.js"></script>
+    <script type="text/javascript" src="dc.js-master/web/js/dc.js"></script>
+    <script type="text/javascript" src="fullCharts.js"></script>
+
+
+    <style type="text/css">
+        h2 {
+            color: #5BC0DE;
+        }
+
+        #header {
+            margin-top: 5px;
+        }
+
+        #chartContainer {
+            border: 1px solid gray;
+            height: 200px;
+            width: 500px;
+        }
+
+        .columnName {
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            display: table;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.42857;
+            margin-bottom: 5px;
+            padding: 6px 12px;
+            text-align: center;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+            /*#dLabel {*/
+            /*margin-top: 20px;*/
+            /*}*/
+
+            /*.dropdown-menu {*/
+            /*width: 79px;*/
+            /*min-width: 0;*/
+            /*margin: 0;*/
+            /*}*/
+
+            /*.dc-table-column, .dc-data-table th {*/
+            /*text-align: right !important;*/
+            /*}*/
+
+            /*.y.axis line {*/
+            /*fill: none;*/
+            /*shape-rendering: crispedges;*/
+            /*stroke: #000000;*/
+            /*stroke-opacity: 0.2;*/
+            /*}*/
+
+
+            /*#containerDiv{*/
+            /*background-color: blue;*/
+            /*}*/
+
+    </style>
+</HEAD>
+
+<BODY>
+
+<div class="container-fluid">
+
+    <div class="row col-md-offset-4 col-sm-8 col-md-8">
+        <BR/>
+        <div id="pie" class="col-sm-1 col-md-1"><img src="pie-icon.jpg" width="60px" height="50px" class="imgChart"></div>
+        <div id="timeSerie" class="col-sm-1 col-md-1"><img src="timeserie-icon.png" width="50px" height="50px" class="imgChart"></div>
+        <div id="barchart" class="col-sm-1 col-md-1"><img src="barchart-icon.png" width="50px" height="50px" class="imgChart"></div>
+    </div>
+
+
+    <div class="row col-sm-12 col-md-12">
+
+        <div class="col-sm-3 col-md-3 text-center">
+            <h2>Columns File</h2><BR/>
+            <div id="header">
+            </div>
+
+            <button id="displayAllData" class="btn btn-info">Display all data</button>
+        </div>
+
+        <div id="chartContainer" class="col-sm-9 col-md-9">
+        </div>
+    </div>
+
+
+    <div class="row col-sm-12 col-md-12">
+
+        <div id="data-count" class="dc-data-count dc-chart">
+            <span class="filter-count"></span><span>Number</span><span class="total-count"></span><span>Records</span>
+        </div>
+
+        <table id="data-table" class="table table-hover dc-data-table dc-chart">
+            <thead>
+            <tr class="header">
+                <th><span>Nom</span></th>
+                <th><span>Prénom</span></th>
+                <th><span>Value</span></th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+
+    <!--Github link-->
+    <div id="githubLink" style="position: absolute; top: 0; right: 0;">
+        <a href="https://github.com/VanessaMaigne/Export" target="_blank">
+            <img src="https://camo.githubusercontent.com/652c5b9acfaddf3a9c326fa6bde407b87f7be0f4/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6f72616e67655f6666373630302e706e67"
+                 alt="Fork me on GitHub"
+                 data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png"></a>
+    </div>
+
+</div>
+
+
+<script type="text/javascript">
+    $(window).load(function(){
+        readFile();
+        dragAndDrop(".imgChart");
+
+        $("#displayAllData").on("click", function()
+        {
+//            createDataTable( "#data-count", "#data-table", this.data, this.data.groupAll(), this.continents );
+        });
+
+        //        $(".imgChart").draggable({
+        //            revert:true,
+        //            helper:"clone",
+        //            cursor:"move"
+        //        }) ;
+        //
+        //        $("#chartContainer").droppable({
+        //            accept:".imgChart",
+        //            activeClass:"zone-drop-active",
+        //            hoverClass:"zone-drop-survolee",
+        //            drop:function(event, ui){
+        //                console.log("OK, image déposée");
+        //            }});
+        //
+        //
+    });
+
+</script>
+
+</BODY>
+</HTML>
+
