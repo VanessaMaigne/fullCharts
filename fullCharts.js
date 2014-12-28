@@ -9,6 +9,10 @@
 
 var fullHeader;
 var header;
+var containerColumn = "header";
+
+var selectedColumn = false;
+var selectedChart = false;
 
 function readFile( fileName )
 {
@@ -20,6 +24,8 @@ function readFile( fileName )
         $.each(header, function(i,d){
             var element = $("<div></div>");
             element.attr("class", "columnName btn-default");
+            element.attr("id", "column_"+i+"_"+$.trim(d));
+            element.attr("title", d);
             element.html(d);
             $("#header").append(element);
         });
@@ -61,6 +67,16 @@ function dragAndDrop(elementClass)
                     position: 'absolute'
                 });
             }
+
+            if(ui.draggable[0].parentElement.id == containerColumn){
+                selectedColumn = ui.draggable[0].title;
+                $("#selectedColumn").html(selectedColumn);
+            } else {
+                selectedChart = ui.draggable[0].title;
+                $("#selectedChart").html(selectedChart);
+            }
+
+            createChart(selectedColumn, selectedChart);
         }
     });
 }
@@ -105,6 +121,15 @@ function createTableColumns(d){
     });
 
     return arrayFunction;
+}
+
+
+/* ************************************** */
+/* *************** CHARTS *************** */
+/* ************************************** */
+function createChart()
+{
+
 }
 
 //    $(".btn").on({
