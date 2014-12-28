@@ -11,8 +11,11 @@ var fullHeader;
 var header;
 var containerColumn = "header";
 
-var selectedColumn = false;
+var data;
+var selectedColumnX = false;
+var selectedColumnY = false;
 var selectedChart = false;
+var lastSelectedColumn = false;
 
 function readFile( fileName )
 {
@@ -34,13 +37,17 @@ function readFile( fileName )
         createDataHeader();
 
         // Data
-        var data = crossfilter( csv );
+        data = crossfilter( csv );
         var continents = data.dimension( function( d )
         {
             return d[fullHeader];
         } );
 
         createDataTable( "#data-count", "#data-table", data, data.groupAll(), continents );
+        selectedColumnX = "Nom";
+        selectedColumnY = "Value";
+        selectedChart = "bar";
+        createBarChart();
     });
 }
 
@@ -69,16 +76,128 @@ function dragAndDrop(elementClass)
             }
 
             if(ui.draggable[0].parentElement.id == containerColumn){
-                selectedColumn = ui.draggable[0].title;
-                $("#selectedColumn").html(selectedColumn);
+                if(!selectedColumnX || lastSelectedColumn == "Y")
+                    selectColumn(ui, "#selectedColumnX", "X" );
+                else
+                    selectColumn(ui, "#selectedColumnY", "Y" );
             } else {
                 selectedChart = ui.draggable[0].title;
                 $("#selectedChart").html(selectedChart);
             }
 
-            createChart(selectedColumn, selectedChart);
+            createChart();
         }
     });
+}
+
+function selectColumn(ui, columnId, columnLetter)
+{
+    if(columnLetter == "X")
+        selectedColumnX = ui.draggable[0].title;
+    else
+        selectedColumnY = ui.draggable[0].title;
+    $(columnId).html(ui.draggable[0].title);
+    lastSelectedColumn = columnLetter;
+}
+
+/* ************************************** */
+/* *************** CHARTS *************** */
+/* ************************************** */
+function createChart()
+{
+    if(!selectedColumnX || !selectedColumnY || !selectedChart)
+        return;
+
+    switch(selectedChart) {
+        case "pie":
+            console.log("create pie");
+            createPieChart();
+            break;
+        case "timeSerie":
+            console.log("create timeSerie");
+            createTimeSerieChart();
+            break;
+        case "bar":
+            console.log("create bar");
+            createBarChart();
+            break;
+    }
+}
+
+function createPieChart(){
+
+}
+
+function  createTimeSerieChart(){
+
+}
+
+function createBarChart(){
+    var barCharMargin = {top: 10, right: 0, bottom: 75, left: 35};
+    var color = d3.scale.category20();
+    var valueIndexX = header.indexOf(selectedColumnX);
+    var valueIndexY = header.indexOf(selectedColumnY);
+    var xDomain = new Array();
+
+    var dimension = data.dimension( function ( d, i )
+    {
+        var values = d[fullHeader].split(",");
+        xDomain.push(values[valueIndexX]);
+        return values[valueIndexX];
+    }, this );
+
+    var group = dimension.group().reduce(
+        // add
+        function( p, v )
+        {
+            var values = v[fullHeader].split(",");
+            if( !isNaN( values[valueIndexY] ) && parseFloat( values[valueIndexY] ))
+                p.value += parseFloat( values[valueIndexY] );
+
+            return p;
+        },
+        // remove
+        function( p, v )
+        {
+            var values = v[fullHeader].split(",");
+            if( !isNaN( values[valueIndexY] ) && parseFloat( values[valueIndexY] ))
+                p.value -= parseFloat( values[valueIndexY] );
+            return p;
+        },
+        // init
+        function( p, v )
+        {
+            return {value: 0};
+        }
+    );
+
+
+    dc.customBarChartWithUncertainty( "#chartContainer" )
+        .height( 300 )
+        .width( 500 )
+        .transitionDuration( 750 )
+        .margins( barCharMargin )
+        .dimension( dimension )
+        .group( group, "groupLayer" )
+        .brushOn( false )
+        .gap( 0 )
+        .elasticY( false )
+        .elasticYInDomain( true )
+        .colors( color )
+        .xUnits( dc.units.ordinal )
+        .x( d3.scale.ordinal().domain(xDomain))
+        .y( d3.scale.linear().domain( [0,100] ) )
+        .renderHorizontalGridLines( true );
+
+//    barChart.setUseRightYAxis( useRightYAxis );
+//    barChart.yAxis().tickFormat( d3.format( "s" ) );
+//    barChart.displayBoxAndWhiskersPlot( this.displayUncertainty );
+//    barChart.setCallBackOnClick( jQuery.proxy( this.onClickFluxChart, [this, chartId] ) );
+//    barChart.on( "postRedraw", jQuery.proxy( function()
+//    {
+//        this.onCompleteDisplayFluxChart()
+//    }, this ) );
+    dc.renderAll();
 }
 
 /* ************************************** */
@@ -110,7 +229,7 @@ function createDataTable( countId, tableId, allD, allG, tableD ){
             table.selectAll( ".dc-table-group" ).classed( "info", false );
         } );
 
-    dc.renderAll();
+//    dc.renderAll();
 }
 
 function createTableColumns(d){
@@ -123,13 +242,16 @@ function createTableColumns(d){
     return arrayFunction;
 }
 
-
 /* ************************************** */
-/* *************** CHARTS *************** */
+/* **************** INIT **************** */
 /* ************************************** */
-function createChart()
-{
+function init(){
+    selectedColumnX = false;
+    selectedColumnY = false;
+    selectedChart = false;
+    lastSelectedColumn = false;
 
+    $("#chartContainer").empty();
 }
 
 //    $(".btn").on({

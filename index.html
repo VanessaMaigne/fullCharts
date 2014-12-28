@@ -29,7 +29,6 @@
         }
 
         #chartContainer {
-            border: 1px solid gray;
             height: 200px;
             width: 500px;
         }
@@ -49,9 +48,8 @@
             white-space: nowrap;
         }
 
-        #selectedColumn, #selectedChart {
+        #selectedChart {
             margin-top : 8px;
-            /*margin-bottom: 10px;*/
         }
     </style>
 </HEAD>
@@ -62,16 +60,15 @@
 
     <div class="row col-sm-12 col-md-12"><BR/>
         <div class="col-sm-3 col-md-3">
-             <div class="col-sm-7 col-md-7"><h5>Selected column : </h5></div><div id="selectedColumn" class="col-sm-5 col-md-5">&nbsp;</div>
+            <div class="col-sm-7 col-md-7"><h5>Selected X column : </h5></div><div id="selectedColumnX" class="col-sm-5 col-md-5">&nbsp;</div>
+            <div class="col-sm-7 col-md-7"><h5>Selected Y column : </h5></div><div id="selectedColumnY" class="col-sm-5 col-md-5">&nbsp;</div>
             <div class="col-sm-7 col-md-7"><h5>Selected chart : </h5></div><div id="selectedChart" class="col-sm-5 col-md-5">&nbsp;</div>
-
-            <!--<h5>Selected chart : </h5><span id="selectedChart"></span>-->
         </div>
 
-        <div id="charts" class="col-md-offset-1 col-sm-8 col-md-8">
+        <div id="charts" class="col-md-offset-1 col-sm-8 col-md-8"><BR/>
             <div id="pie" class="col-sm-1 col-md-1"><img src="pie-icon.jpg" title="pie" width="60px" height="50px" class="imgChart"/></div>
             <div id="timeSerie" class="col-sm-1 col-md-1"><img src="timeserie-icon.png" title="timeSerie" width="50px" height="50px" class="imgChart"/></div>
-            <div id="barchart" class="col-sm-1 col-md-1"><img src="barchart-icon.png" title="bar" width="50px" height="50px" class="imgChart"/></div>
+            <div id="bar" class="col-sm-1 col-md-1"><img src="barchart-icon.png" title="bar" width="50px" height="50px" class="imgChart"/></div>
         </div>
     </div>
 
@@ -81,7 +78,9 @@
             <h2>Columns File</h2>
             <div id="header"></div>
 
-            <BR/><BR/><button id="displayAllData" class="btn btn-info">Display all data</button>
+            <BR/><BR/>
+            <button id="displayAllData" class="btn btn-info">Display all data</button>
+            <button id="resetSelect" class="btn btn-danger">Init</button>
         </div>
 
         <div id="chartContainer" class="col-sm-9 col-md-9"></div>
@@ -117,6 +116,11 @@
         $("#displayAllData").on("click", function()
         {
             $("#dataDiv").toggle();
+        });
+
+        $("#resetSelect").on("click", function()
+        {
+            init();
         });
 
         //        $(".imgChart").draggable({
