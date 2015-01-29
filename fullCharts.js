@@ -9,7 +9,6 @@
 
 // TODO :
 //  - wait for file reading
-//  - tooltip
 
 
 // File parameters
@@ -26,14 +25,18 @@ var lastSelectedColumn = false;
 var barCharMargin = {top: 10, right: 0, bottom: 75, left: 35};
 var color = d3.scale.category20();
 var toolTip;
+var chartHeight = 250;
+var chartWidth = 600;
+var format = d3.time.format("%d/%m/%Y_%H:%M");
 
 
 function readFile(fileName) {
-    d3.tsv(fileName, function (error, csv) {
+    d3.csv(fileName, function (error, csv) {
         // Header columns
-        fullHeader = d3.keys(csv[0])[0];
-        header = fullHeader.split(',');
-        $.each(header, function(i, d) {
+        fullHeader = d3.keys(csv[0]);
+//        header = fullHeader.split(',');
+        header = d3.keys(csv[0]);
+        $.each(fullHeader, function(i, d) {
             var element = $("<div></div>");
             element.attr("class", "columnName btn-default");
             element.attr("id", "column_" + i + "_" + $.trim(d));
@@ -47,15 +50,17 @@ function readFile(fileName) {
 
         // Data
         data = crossfilter(csv);
-        var continents = data.dimension(function(d) {
-            return d[fullHeader];
-        });
+//        var dimensionHeader = data.dimension(function(d) {
+//            return d[fullHeader];
+//        });
 
-        createDataTable("#data-count", "#data-table", data, data.groupAll(), continents);
+//        createDataTable("#data-count", "#data-table", data, data.groupAll(), dimensionHeader);
+
+
         selectedColumnX = "Nom";
-        selectedColumnY = "Value";
+        selectedColumnY = "Quantite";
         selectedChart = "bar";
-        createBarChart();
+        createChart();
     });
 }
 
@@ -109,14 +114,25 @@ function selectColumn(ui, columnId, columnLetter) {
 /* ************************************** */
 /* *************** CHARTS *************** */
 /* ************************************** */
+var valueIndexX, valueIndexY, xDomain, yDomain, isOrdinalX, isOrdinalY;
+
 function createChart() {
     if (!selectedColumnX || !selectedColumnY || !selectedChart)
         return;
 
+    $("#chartContainer").empty();
+
+    valueIndexX = header.indexOf(selectedColumnX);
+    valueIndexY = header.indexOf(selectedColumnY);
+    xDomain = new Array();
+    yDomain = new Array();
+    isOrdinalX = false;
+    isOrdinalY = false;
+
     switch (selectedChart) {
         case "pie":
             console.log("create pie");
-            createPieChart();
+            createPieChart(dimension);
             break;
         case "timeSerie":
             console.log("create timeSerie");
@@ -130,68 +146,94 @@ function createChart() {
 }
 
 function createPieChart() {
-
 }
 
 function createTimeSerieChart() {
+    var timeDimension = data.dimension(function(d) {
+        var value = d[header[valueIndexX]];
+        return format.parse(value);
+    });
 
+    var timeDimensionGroup = timeDimension.group().reduce(
+            function(p, v) {
+                p.value += parseInt(v.Quantite);
+                return p;
+            },
+            function(p, v) {
+                p.value -= parseInt(v.Quantite);
+                return p;
+            },
+            function() {
+                return { value : 0};
+            });
+
+    d3.time.day.offset(d, -1);
+    var date1 = format.parse("25/01/2015_00:00");
+    var date2 = format.parse("30/01/2015_00:00");
+    console.log(date1 + ", " + date2);
+
+    dc.lineChart("#chartContainer")
+            .width(chartWidth)
+            .height(chartHeight)
+            .margins(barCharMargin)
+            .dimension(timeDimension)
+            .group(timeDimensionGroup)
+            .valueAccessor(function(d) {
+        return d.value.value;
+    })
+            .transitionDuration(500)
+            .elasticY(true)
+            .x(d3.time.scale().domain([date1,date2]))
+            .xAxis();
+
+    dc.renderAll();
 }
 
-function createBarChart() {
-    var valueIndexX = header.indexOf(selectedColumnX);
-    var valueIndexY = header.indexOf(selectedColumnY);
-    var xDomain = new Array();
-    var yDomain = new Array();
-    var isOrdinalX = false;
-    var isOrdinalY = false;
-
+function createBarChart(dimension) {
     // Dimension, xDomain & yDomain
     var dimension = data.dimension(function (d) {
-        var values = d[fullHeader].split(",");
+        var valueX = d[header[valueIndexX]];
+        var valueY = d[header[valueIndexY]];
 
         // Domains
-        isOrdinalX = isNaN(parseFloat(values[valueIndexX]));
-        isOrdinalY = isNaN(parseFloat(values[valueIndexY]));
+        isOrdinalX = isNaN(parseFloat(valueX));
+        isOrdinalY = isNaN(parseFloat(valueY));
         if (isOrdinalX)
-            xDomain.push(values[valueIndexX]);
+            xDomain.push(valueX);
         else
-            xDomain.push(parseFloat(values[valueIndexX]));
-        if (isOrdinalY)
-            yDomain.push(values[valueIndexY]);
-        else
-            yDomain.push(parseFloat(values[valueIndexY]));
+            xDomain.push(parseFloat(valueX));
 
-        return values[valueIndexX];
-    }, this);
+        return valueX;
+    });
 
-    // yDomain
-    var min = Math.min.apply(Math, yDomain);
-    var max = Math.max.apply(Math, yDomain);
-    yDomain = [min + (min * 0.01), max + (max * 0.01)];
-
+    var max = 0;
+    var min = 0;
     // Group
     var group = dimension.group().reduce(
         // add
             function(p, v) {
-                var values = v[fullHeader].split(",");
-                if (!isNaN(values[valueIndexY]) && parseFloat(values[valueIndexY]))
-                    p.value += parseFloat(values[valueIndexY]);
-
+                var valueY = v[header[valueIndexY]];
+                if (!isNaN(valueY) && parseFloat(valueY))
+                    p.value += parseFloat(valueY);
+                max = Math.max(max, p.value);
+                min = Math.min(min, p.value);
                 return p;
             },
         // remove
             function(p, v) {
-                var values = v[fullHeader].split(",");
-                if (!isNaN(values[valueIndexY]) && parseFloat(values[valueIndexY]))
-                    p.value -= parseFloat(values[valueIndexY]);
+                var valueY = v[header[valueIndexY]];
+                if (!isNaN(valueY) && parseFloat(valueY))
+                    p.value -= parseFloat(valueY);
                 return p;
             },
         // init
             function(p, v) {
                 return {value: 0};
-            }
-            );
+            });
 
+
+    // yDomain
+    yDomain = [min + (min * 0.01), max + (max * 0.01)];
 
     dc.customBarChartWithUncertainty("#chartContainer")
             .height(300)

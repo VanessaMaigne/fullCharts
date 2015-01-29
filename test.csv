@@ -1,6 +1,10 @@
-Nom,Prénom,Value
-Raccoon,Rocky,2
-Pepper,Sergent,30
-Nom3,Bob,1
-Nom4,Bib,99
-Nom5,zz,4
+Nom,Prénom,Bonbon,Temps,Quantite
+Raccoon,Rocky,Michoko,28/01/2015_10:30,1
+Raccoon,Rocky,Michoko,27/01/2015_10:28,2
+Raccoon,Rocky,Michoko,29/01/2015_9:00,3
+Pepper,Sergent,Tirlibibi,28/01/2015_8:30,4
+Pepper,Sergent,Sucette,28/01/2015_12:00,1
+Pepper,Sergent,Tirlibibi,27/01/2015_11:25,1
+Pepper,Sergent,Mikado,28/01/2015_11:30,5
+Nom4,Bib,Sucette,26/01/2015_10:00,5
+Nom5,zz,Tagada,26/01/2015_11:00,7
