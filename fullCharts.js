@@ -167,7 +167,7 @@ function createBarChart() {
     // yDomain
     var min = Math.min.apply(Math, yDomain);
     var max = Math.max.apply(Math, yDomain);
-    yDomain = [min * 0.01, max * 0.01];
+    yDomain = [min + (min * 0.01), max + (max * 0.01)];
 
     // Group
     var group = dimension.group().reduce(
@@ -227,6 +227,7 @@ function updateToolTip(elementType) {
 function initToolTip() {
     toolTip = d3.tip()
             .attr('class', 'd3-tip')
+            .offset([-10,0])
             .html(function (d) {
         return "<span class='d3-tipTitle'>" + d.data.key + " : </span>" + d.data.value.value;
     });
