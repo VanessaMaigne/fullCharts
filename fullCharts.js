@@ -25,19 +25,18 @@ var selectedChart = false;
 var lastSelectedColumn = false;
 var barCharMargin = {top: 10, right: 0, bottom: 75, left: 35};
 var color = d3.scale.category20();
+var toolTip;
 
 
-function readFile( fileName )
-{
-    d3.tsv( fileName, function ( error, csv )
-    {
+function readFile(fileName) {
+    d3.tsv(fileName, function (error, csv) {
         // Header columns
         fullHeader = d3.keys(csv[0])[0];
         header = fullHeader.split(',');
-        $.each(header, function(i,d){
+        $.each(header, function(i, d) {
             var element = $("<div></div>");
             element.attr("class", "columnName btn-default");
-            element.attr("id", "column_"+i+"_"+$.trim(d));
+            element.attr("id", "column_" + i + "_" + $.trim(d));
             element.attr("title", d);
             element.html(d);
             $("#header").append(element);
@@ -47,13 +46,12 @@ function readFile( fileName )
         createDataHeader();
 
         // Data
-        data = crossfilter( csv );
-        var continents = data.dimension( function( d )
-        {
+        data = crossfilter(csv);
+        var continents = data.dimension(function(d) {
             return d[fullHeader];
-        } );
+        });
 
-        createDataTable( "#data-count", "#data-table", data, data.groupAll(), continents );
+        createDataTable("#data-count", "#data-table", data, data.groupAll(), continents);
         selectedColumnX = "Nom";
         selectedColumnY = "Value";
         selectedChart = "bar";
@@ -61,8 +59,7 @@ function readFile( fileName )
     });
 }
 
-function dragAndDrop(elementClass)
-{
+function dragAndDrop(elementClass) {
     $(elementClass).draggable({
         helper: "clone",
         cursor: 'move'
@@ -85,11 +82,11 @@ function dragAndDrop(elementClass)
                 });
             }
 
-            if(ui.draggable[0].parentElement.id == containerColumn){
-                if(!selectedColumnX || lastSelectedColumn == "Y")
-                    selectColumn(ui, "#selectedColumnX", "X" );
+            if (ui.draggable[0].parentElement.id == containerColumn) {
+                if (!selectedColumnX || "Y" == lastSelectedColumn)
+                    selectColumn(ui, "#selectedColumnX", "X");
                 else
-                    selectColumn(ui, "#selectedColumnY", "Y" );
+                    selectColumn(ui, "#selectedColumnY", "Y");
             } else {
                 selectedChart = ui.draggable[0].title;
                 $("#selectedChart").html(selectedChart);
@@ -100,9 +97,8 @@ function dragAndDrop(elementClass)
     });
 }
 
-function selectColumn(ui, columnId, columnLetter)
-{
-    if(columnLetter == "X")
+function selectColumn(ui, columnId, columnLetter) {
+    if ("X" == columnLetter)
         selectedColumnX = ui.draggable[0].title;
     else
         selectedColumnY = ui.draggable[0].title;
@@ -113,12 +109,11 @@ function selectColumn(ui, columnId, columnLetter)
 /* ************************************** */
 /* *************** CHARTS *************** */
 /* ************************************** */
-function createChart()
-{
-    if(!selectedColumnX || !selectedColumnY || !selectedChart)
+function createChart() {
+    if (!selectedColumnX || !selectedColumnY || !selectedChart)
         return;
 
-    switch(selectedChart) {
+    switch (selectedChart) {
         case "pie":
             console.log("create pie");
             createPieChart();
@@ -134,15 +129,15 @@ function createChart()
     }
 }
 
-function createPieChart(){
+function createPieChart() {
 
 }
 
-function  createTimeSerieChart(){
+function createTimeSerieChart() {
 
 }
 
-function createBarChart(){
+function createBarChart() {
     var valueIndexX = header.indexOf(selectedColumnX);
     var valueIndexY = header.indexOf(selectedColumnY);
     var xDomain = new Array();
@@ -151,113 +146,126 @@ function createBarChart(){
     var isOrdinalY = false;
 
     // Dimension, xDomain & yDomain
-    var dimension = data.dimension( function ( d )
-    {
+    var dimension = data.dimension(function (d) {
         var values = d[fullHeader].split(",");
 
         // Domains
         isOrdinalX = isNaN(parseFloat(values[valueIndexX]));
         isOrdinalY = isNaN(parseFloat(values[valueIndexY]));
-        if(isOrdinalX)
+        if (isOrdinalX)
             xDomain.push(values[valueIndexX]);
         else
             xDomain.push(parseFloat(values[valueIndexX]));
-        if(isOrdinalY)
+        if (isOrdinalY)
             yDomain.push(values[valueIndexY]);
         else
             yDomain.push(parseFloat(values[valueIndexY]));
 
         return values[valueIndexX];
-    }, this );
+    }, this);
 
     // yDomain
-    var min = Math.min.apply(Math,yDomain);
-    var max = Math.max.apply(Math,yDomain);
-    yDomain = [min* 0.01, max* 0.01];
+    var min = Math.min.apply(Math, yDomain);
+    var max = Math.max.apply(Math, yDomain);
+    yDomain = [min * 0.01, max * 0.01];
 
     // Group
     var group = dimension.group().reduce(
         // add
-        function( p, v )
-        {
-            var values = v[fullHeader].split(",");
-            if( !isNaN( values[valueIndexY] ) && parseFloat( values[valueIndexY] ))
-                p.value += parseFloat( values[valueIndexY] );
+            function(p, v) {
+                var values = v[fullHeader].split(",");
+                if (!isNaN(values[valueIndexY]) && parseFloat(values[valueIndexY]))
+                    p.value += parseFloat(values[valueIndexY]);
 
-            return p;
-        },
+                return p;
+            },
         // remove
-        function( p, v )
-        {
-            var values = v[fullHeader].split(",");
-            if( !isNaN( values[valueIndexY] ) && parseFloat( values[valueIndexY] ))
-                p.value -= parseFloat( values[valueIndexY] );
-            return p;
-        },
+            function(p, v) {
+                var values = v[fullHeader].split(",");
+                if (!isNaN(values[valueIndexY]) && parseFloat(values[valueIndexY]))
+                    p.value -= parseFloat(values[valueIndexY]);
+                return p;
+            },
         // init
-        function( p, v )
-        {
-            return {value: 0};
-        }
-    );
+            function(p, v) {
+                return {value: 0};
+            }
+            );
 
 
-    dc.customBarChartWithUncertainty( "#chartContainer" )
-        .height( 300 )
-        .width( 500 )
-        .transitionDuration( 750 )
-        .margins( barCharMargin )
-        .dimension( dimension )
-        .group( group, "groupLayer" )
-        .brushOn( false )
-        .gap( 0 )
-        .elasticY( false )
-        .elasticYInDomain( true )
-        .colors( color )
-        .xUnits( dc.units.ordinal )
-        .x( d3.scale.ordinal().domain(xDomain))
-        .y( d3.scale.linear().domain( yDomain ) )
-        .renderHorizontalGridLines( true );
+    dc.customBarChartWithUncertainty("#chartContainer")
+            .height(300)
+            .width(500)
+            .transitionDuration(750)
+            .margins(barCharMargin)
+            .dimension(dimension)
+            .group(group, "groupLayer")
+            .brushOn(false)
+            .gap(0)
+            .elasticY(false)
+            .elasticYInDomain(true)
+            .colors(color)
+            .xUnits(dc.units.ordinal)
+            .x(d3.scale.ordinal().domain(xDomain))
+            .y(d3.scale.linear().domain(yDomain))
+            .renderHorizontalGridLines(true);
 
     dc.renderAll();
+    updateToolTip("rect");
 }
+
+/* ************************************** */
+/* ************** TOOLTIP *************** */
+/* ************************************** */
+function updateToolTip(elementType) {
+    d3.selectAll("#chartContainer " + elementType).call(toolTip);
+    d3.selectAll("#chartContainer " + elementType)
+            .on('mouseover', toolTip.show)
+            .on('mouseout', toolTip.hide);
+}
+
+function initToolTip() {
+    toolTip = d3.tip()
+            .attr('class', 'd3-tip')
+            .html(function (d) {
+        return "<span class='d3-tipTitle'>" + d.data.key + " : </span>" + d.data.value.value;
+    });
+}
+
 
 /* ************************************** */
 /* **************** DATA **************** */
 /* ************************************** */
-function createDataHeader(){
-    $.each(header, function(i,d){
+function createDataHeader() {
+    $.each(header, function(i, d) {
         var thElement = $("<th></th>");
-        thElement.html("<span>"+d+"</span>");
+        thElement.html("<span>" + d + "</span>");
         $("#headerData").append(thElement);
     })
 }
 
-function createDataTable( countId, tableId, allD, allG, tableD ){
-    dc.dataCount( countId )
-        .dimension( allD )
-        .group( allG );
+function createDataTable(countId, tableId, allD, allG, tableD) {
+    dc.dataCount(countId)
+            .dimension(allD)
+            .group(allG);
 
-    dc.dataTable( tableId )
-        .dimension( tableD )
-        .group(function( d )
-        {
-            return d[fullHeader];
-        })
-        .size( allG.value() )
-        .columns( [false])
-        .renderlet( function ( table )
-        {
-            table.selectAll( ".dc-table-group" ).classed( "info", false );
-        } );
+    dc.dataTable(tableId)
+            .dimension(tableD)
+            .group(function(d) {
+        return d[fullHeader];
+    })
+            .size(allG.value())
+            .columns([false])
+            .renderlet(function (table) {
+        table.selectAll(".dc-table-group").classed("info", false);
+    });
 
     dc.renderAll();
 }
 
-function createTableColumns(d){
+function createTableColumns(d) {
     var arrayFunction = new Array();
-    $.each(header, function(i,dd)
-    {
+    $.each(header, function(i, dd) {
         arrayFunction.push(d[fullHeader].split(',')[i]);
     });
 
@@ -267,7 +275,7 @@ function createTableColumns(d){
 /* ************************************** */
 /* **************** INIT **************** */
 /* ************************************** */
-function init(){
+function init() {
     selectedColumnX = false;
     selectedColumnY = false;
     selectedChart = false;
@@ -278,7 +286,10 @@ function init(){
     $("#selectedColumnY").empty();
     $("#selectedChart").empty();
     $("#chartContainer").html("Drag & drop 2 columns and 1 chart in this area !");
+
+    initToolTip();
 }
+
 
 //    $(".btn").on({
 //        dragstart: function(e) {

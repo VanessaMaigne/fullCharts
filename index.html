@@ -13,7 +13,11 @@
     <script type="text/javascript" src="jquery-1.9.1.js"></script>
     <script type="text/javascript" src="jquery-ui-1.11.2/jquery-ui.js"></script>
     <!--<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>-->
+
     <script type="text/javascript" src="d3.js"></script>
+    <!-- Tooltips -->
+    <script type="text/javascript" src="d3.tip.min.js"></script>
+
     <script type="text/javascript" src="dc.js-master/web/js/crossfilter.js"></script>
     <script type="text/javascript" src="dc.js-master/web/js/dc.js"></script>
     <script type="text/javascript" src="fullCharts.js"></script>
@@ -29,7 +33,7 @@
         }
 
         #chartContainer {
-            /*border: 1px solid red;*/
+        /*border: 1px solid red;*/
             vertical-align: middle;
             line-height: 300px;
             min-height: 300px;
@@ -51,7 +55,39 @@
         }
 
         #selectedChart, #selectedColumnX, #selectedColumnY {
-            margin-top : 8px;
+            margin-top: 8px;
+        }
+
+        /* ************** D3-TIP ************** */
+        .d3-tip {
+            background: none repeat scroll 0 0 rgba(0, 0, 0, 0.6);
+            border-radius: 8px 8px 8px 8px;
+            color: #FFFFFF;
+            font-weight: bold;
+            line-height: 1;
+            padding: 12px;
+            max-width: 350px;
+        }
+
+        .d3-tip:after {
+            color: rgba(0, 0, 0, 0.8);
+            content: "▼";
+            display: inline;
+            font-size: 10px;
+            line-height: 1;
+            position: absolute;
+            text-align: center;
+            width: 100%;
+        }
+
+        .d3-tip.n:after {
+            left: 0;
+            margin: -1px 0 0;
+            top: 100%;
+        }
+
+        .d3-tipTitle {
+            color: #5bc0de;
         }
     </style>
 </HEAD>
@@ -61,16 +97,24 @@
 <div class="container-fluid">
 
     <div class="row col-sm-12 col-md-12"><BR/>
+
         <div class="col-sm-3 col-md-3">
-            <div class="col-sm-7 col-md-7"><h5>Selected X column : </h5></div><div id="selectedColumnX" class="col-sm-5 col-md-5">&nbsp;</div>
-            <div class="col-sm-7 col-md-7"><h5>Selected Y column : </h5></div><div id="selectedColumnY" class="col-sm-5 col-md-5">&nbsp;</div>
-            <div class="col-sm-7 col-md-7"><h5>Selected chart : </h5></div><div id="selectedChart" class="col-sm-5 col-md-5">&nbsp;</div>
+            <div class="col-sm-7 col-md-7"><h5>Selected X column : </h5></div>
+            <div id="selectedColumnX" class="col-sm-5 col-md-5">&nbsp;</div>
+            <div class="col-sm-7 col-md-7"><h5>Selected Y column : </h5></div>
+            <div id="selectedColumnY" class="col-sm-5 col-md-5">&nbsp;</div>
+            <div class="col-sm-7 col-md-7"><h5>Selected chart : </h5></div>
+            <div id="selectedChart" class="col-sm-5 col-md-5">&nbsp;</div>
         </div>
 
         <div id="charts" class="col-md-offset-1 col-sm-8 col-md-8"><BR/>
-            <div id="pie" class="col-sm-1 col-md-1"><img src="pie-icon.jpg" title="pie" width="60px" height="50px" class="imgChart"/></div>
-            <div id="timeSerie" class="col-sm-1 col-md-1"><img src="timeserie-icon.png" title="timeSerie" width="50px" height="50px" class="imgChart"/></div>
-            <div id="bar" class="col-sm-1 col-md-1"><img src="barchart-icon.png" title="bar" width="50px" height="50px" class="imgChart"/></div>
+
+            <div id="pie" class="col-sm-1 col-md-1"><img src="pie-icon.jpg" title="pie" width="60px" height="50px"
+                                                         class="imgChart"/></div>
+            <div id="timeSerie" class="col-sm-1 col-md-1"><img src="timeserie-icon.png" title="timeSerie" width="50px"
+                                                               height="50px" class="imgChart"/></div>
+            <div id="bar" class="col-sm-1 col-md-1"><img src="barchart-icon.png" title="bar" width="50px" height="50px"
+                                                         class="imgChart"/></div>
         </div>
     </div>
 
@@ -78,6 +122,7 @@
     <div class="row col-sm-12 col-md-12">
         <div class="col-sm-3 col-md-3 text-center">
             <h2>Columns File</h2>
+
             <div id="header"></div>
 
             <BR/><BR/>
@@ -95,7 +140,9 @@
         </div>
 
         <table id="data-table" class="table table-hover dc-data-table dc-chart">
-            <thead><tr id="headerData" class="header"></tr></thead>
+            <thead>
+            <tr id="headerData" class="header"></tr>
+            </thead>
         </table>
     </div>
 
@@ -111,18 +158,16 @@
 
 
 <script type="text/javascript">
-    $(window).load(function(){
+    $(window).load(function() {
         readFile("test.csv");
         dragAndDrop(".imgChart");
         init();
 
-        $("#displayAllData").on("click", function()
-        {
+        $("#displayAllData").on("click", function() {
             $("#dataDiv").toggle();
         });
 
-        $("#resetSelect").on("click", function()
-        {
+        $("#resetSelect").on("click", function() {
             init();
         });
 
