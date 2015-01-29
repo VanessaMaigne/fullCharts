@@ -11,12 +11,8 @@
 //  - wait for file reading
 
 
-// File parameters
-var fullHeader;
+// Parameters
 var header;
-var containerColumn = "header";
-
-// Chart parameters
 var data;
 var selectedColumnX = false;
 var selectedColumnY = false;
@@ -34,10 +30,8 @@ var format = d3.time.format("%d/%m/%Y_%H:%M");
 function readFile(fileName) {
     d3.csv(fileName, function (error, csv) {
         // Header columns
-        fullHeader = d3.keys(csv[0]);
-//        header = fullHeader.split(',');
         header = d3.keys(csv[0]);
-        $.each(fullHeader, function(i, d) {
+        $.each(header, function(i, d) {
             var element = $("<div></div>");
             element.attr("class", "columnName btn-default");
             element.attr("id", "column_" + i + "_" + $.trim(d));
@@ -58,17 +52,17 @@ function readFile(fileName) {
 
         // Data
         data = crossfilter(csv);
-//        var dimensionHeader = data.dimension(function(d) {
-//            return d;
-//        });
+        var dimensionHeader = data.dimension(function(d) {
+            return d;
+        });
 
-//        createDataTable("#data-count", "#data-table", data, data.groupAll(), dimensionHeader);
+        createDataTable("#data-count", "#data-table", data, data.groupAll(), dimensionHeader);
 
 
-//        selectedColumnX = "Nom";
-//        selectedColumnY = "Quantite";
-//        selectedChart = "bar";
-//        createChart();
+        selectedColumnX = "Temps";
+        selectedColumnY = "Bonbon";
+        selectedChart = "timeSerie";
+        createChart();
     });
 }
 
@@ -124,13 +118,14 @@ function createTimeSerieChart() {
         return format.parse(value);
     });
 
+//    var timeDimensionGroup = timeDimension.group().reduceCount();
     var timeDimensionGroup = timeDimension.group().reduce(
             function(p, v) {
-                p.value += parseInt(v.Quantite);
+                p.value += 1;
                 return p;
             },
             function(p, v) {
-                p.value -= parseInt(v.Quantite);
+                p.value -= 1;
                 return p;
             },
             function() {
@@ -236,7 +231,11 @@ function createDataTable(countId, tableId, allD, allG, tableD) {
     dc.dataTable(tableId)
             .dimension(tableD)
             .group(function(d) {
-        return d.Nom;
+        var result = new Array();
+        $.each(header, function(i, dd) {
+            result.push(d[dd]);
+        });
+        return result;
     })
             .size(allG.value())
             .columns([false])
@@ -246,15 +245,6 @@ function createDataTable(countId, tableId, allD, allG, tableD) {
 
     dc.renderAll();
 }
-
-//function createTableColumns(d) {
-//    var arrayFunction = new Array();
-//    $.each(header, function(i, dd) {
-//        arrayFunction.push(d[fullHeader].split(',')[i]);
-//    });
-//
-//    return arrayFunction;
-//}
 
 /* ************************************** */
 /* **************** INIT **************** */
