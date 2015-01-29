@@ -7,15 +7,25 @@
  *
  */
 
+// TODO :
+//  - wait for file reading
+//  - tooltip
+
+
+// File parameters
 var fullHeader;
 var header;
 var containerColumn = "header";
 
+// Chart parameters
 var data;
 var selectedColumnX = false;
 var selectedColumnY = false;
 var selectedChart = false;
 var lastSelectedColumn = false;
+var barCharMargin = {top: 10, right: 0, bottom: 75, left: 35};
+var color = d3.scale.category20();
+
 
 function readFile( fileName )
 {
@@ -133,19 +143,39 @@ function  createTimeSerieChart(){
 }
 
 function createBarChart(){
-    var barCharMargin = {top: 10, right: 0, bottom: 75, left: 35};
-    var color = d3.scale.category20();
     var valueIndexX = header.indexOf(selectedColumnX);
     var valueIndexY = header.indexOf(selectedColumnY);
     var xDomain = new Array();
+    var yDomain = new Array();
+    var isOrdinalX = false;
+    var isOrdinalY = false;
 
-    var dimension = data.dimension( function ( d, i )
+    // Dimension, xDomain & yDomain
+    var dimension = data.dimension( function ( d )
     {
         var values = d[fullHeader].split(",");
-        xDomain.push(values[valueIndexX]);
+
+        // Domains
+        isOrdinalX = isNaN(parseFloat(values[valueIndexX]));
+        isOrdinalY = isNaN(parseFloat(values[valueIndexY]));
+        if(isOrdinalX)
+            xDomain.push(values[valueIndexX]);
+        else
+            xDomain.push(parseFloat(values[valueIndexX]));
+        if(isOrdinalY)
+            yDomain.push(values[valueIndexY]);
+        else
+            yDomain.push(parseFloat(values[valueIndexY]));
+
         return values[valueIndexX];
     }, this );
 
+    // yDomain
+    var min = Math.min.apply(Math,yDomain);
+    var max = Math.max.apply(Math,yDomain);
+    yDomain = [min* 0.01, max* 0.01];
+
+    // Group
     var group = dimension.group().reduce(
         // add
         function( p, v )
@@ -186,17 +216,9 @@ function createBarChart(){
         .colors( color )
         .xUnits( dc.units.ordinal )
         .x( d3.scale.ordinal().domain(xDomain))
-        .y( d3.scale.linear().domain( [0,100] ) )
+        .y( d3.scale.linear().domain( yDomain ) )
         .renderHorizontalGridLines( true );
 
-//    barChart.setUseRightYAxis( useRightYAxis );
-//    barChart.yAxis().tickFormat( d3.format( "s" ) );
-//    barChart.displayBoxAndWhiskersPlot( this.displayUncertainty );
-//    barChart.setCallBackOnClick( jQuery.proxy( this.onClickFluxChart, [this, chartId] ) );
-//    barChart.on( "postRedraw", jQuery.proxy( function()
-//    {
-//        this.onCompleteDisplayFluxChart()
-//    }, this ) );
     dc.renderAll();
 }
 
@@ -229,7 +251,7 @@ function createDataTable( countId, tableId, allD, allG, tableD ){
             table.selectAll( ".dc-table-group" ).classed( "info", false );
         } );
 
-//    dc.renderAll();
+    dc.renderAll();
 }
 
 function createTableColumns(d){
@@ -252,6 +274,10 @@ function init(){
     lastSelectedColumn = false;
 
     $("#chartContainer").empty();
+    $("#selectedColumnX").empty();
+    $("#selectedColumnY").empty();
+    $("#selectedChart").empty();
+    $("#chartContainer").html("Drag & drop 2 columns and 1 chart in this area !");
 }
 
 //    $(".btn").on({
