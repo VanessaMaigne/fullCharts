@@ -137,7 +137,7 @@ function createTimeSerieChart() {
                 return { value : 0};
             });
 
-    d3.time.day.offset(d, -1);
+//    d3.time.day.offset(d, -1);
     var date1 = format.parse("25/01/2015_00:00");
     var date2 = format.parse("30/01/2015_00:00");
     console.log(date1 + ", " + date2);
@@ -269,7 +269,6 @@ function reset() {
     $("#selectedColumnX").empty();
     $("#selectedColumnY").empty();
     $("#selectedChart").empty();
-    $("#chartContainer").html("Drag & drop 2 columns and 1 chart in this area !");
 
     initToolTip();
 }
