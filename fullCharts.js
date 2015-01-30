@@ -113,29 +113,45 @@ function createPieChart() {
 }
 
 function createTimeSerieChart() {
-    var timeDimension = data.dimension(function(d) {
-        var value = d[header[valueIndexX]];
-        return format.parse(value);
-    });
 
-//    var timeDimensionGroup = timeDimension.group().reduceCount();
-    var timeDimensionGroup = timeDimension.group().reduce(
-            function(p, v) {
-                p.value += 1;
-                return p;
-            },
-            function(p, v) {
-                p.value -= 1;
-                return p;
-            },
-            function() {
-                return { value : 0};
+    var dateArray = new Array();
+    var timeDimension = data.dimension(
+            function(d) {
+                var value = d[header[valueIndexX]];
+                dateArray.push(format.parse(value));
+                return format.parse(value);
             });
 
-//    d3.time.day.offset(d, -1);
-    var date1 = format.parse("25/01/2015_00:00");
-    var date2 = format.parse("30/01/2015_00:00");
-    console.log(date1 + ", " + date2);
+    var timeDimensionGroup = timeDimension.group().reduceCount().filter(
+            function(d) {
+                console.log("ici : " + d.Bonbon);
+                if ("Mikado" == d.Bonbon) {
+                    console.log("ok");
+                    return d;
+                }
+            });
+
+//    var timeDimensionGroup = timeDimension.group().reduce(
+//            function(p, v) {
+//                if ("Mikado" == v.Bonbon)
+//                    p.value += 1;
+//                return p;
+//            },
+//            function(p, v) {
+//                if ("Mikado" == v.Bonbon)
+//                    p.value -= 1;
+//                return p;
+//            },
+//            function() {
+//                return { value : 0};
+//            });
+
+    // Date domain
+    var sortedDateArray = dateArray.sort(function(a, b) {
+        return a.getTime() - b.getTime();
+    });
+    var minDate = d3.time.hour.offset(sortedDateArray[0], -6);
+    var maxDate = d3.time.hour.offset(sortedDateArray[sortedDateArray.length - 1], 6);
 
     dc.lineChart("#chartContainer")
             .width(chartWidth)
@@ -144,11 +160,11 @@ function createTimeSerieChart() {
             .dimension(timeDimension)
             .group(timeDimensionGroup)
             .valueAccessor(function(d) {
-        return d.value.value;
+        return d.value;
     })
             .transitionDuration(transitionDuration)
             .elasticY(true)
-            .x(d3.time.scale().domain([date1,date2]))
+            .x(d3.time.scale().domain([minDate,maxDate]))
             .xAxis();
 
     dc.renderAll();
