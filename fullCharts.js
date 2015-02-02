@@ -27,6 +27,9 @@ var transitionDuration = 500;
 var format = d3.time.format("%d/%m/%Y_%H:%M");
 
 
+/* ************************************** */
+/* **************** FILE **************** */
+/* ************************************** */
 function readFile(fileName) {
     d3.csv(fileName, function (error, csv) {
         // Header columns
@@ -42,7 +45,7 @@ function readFile(fileName) {
 
         // Bind click
         $(".columnName").on("click", function() {
-            if (!selectedColumnX || "Y" == lastSelectedColumn || "bar" == selectedChart)
+            if (!selectedColumnX || "Y" == lastSelectedColumn || "bar" == selectedChart || "pie" == selectedChart)
                 selectColumn(this.title, "#selectedColumnX", "X");
             else
                 selectColumn(this.title, "#selectedColumnY", "Y");
@@ -58,10 +61,9 @@ function readFile(fileName) {
 
         createDataTable("#data-count", "#data-table", data, data.groupAll(), dimensionHeader);
 
-
-//        selectedColumnX = "Temps";
+//        selectedColumnX = "Bonbon";
 //        selectedColumnY = "Bonbon";
-//        selectedChart = "timeSerie";
+//        selectedChart = "pie";
 //        $("#selectedColumnYDetail").val("Michoko");
 //        createChart();
     });
@@ -75,6 +77,7 @@ function selectColumn(title, columnId, columnLetter) {
     $(columnId).html(title);
     lastSelectedColumn = columnLetter;
 }
+
 
 /* ************************************** */
 /* *************** CHARTS *************** */
@@ -114,21 +117,39 @@ function createChart() {
 
     switch (selectedChart) {
         case "pie":
-            console.log("create pie");
-            createPieChart(dimension);
+            createPieChart();
             break;
         case "timeSerie":
-            console.log("create timeSerie");
             createTimeSerieChart();
             break;
         case "bar":
-            console.log("create bar");
             createBarChart();
             break;
     }
 }
 
 function createPieChart() {
+    var pieDimension = data.dimension(
+        function(d) {
+            return d[header[valueIndexX]];
+        });
+
+    var pieDimensionGroup = pieDimension.group().reduceCount();
+
+    dc.pieChart("#chartContainer")
+        .width(chartWidth)
+        .height(chartHeight)
+        .slicesCap(4)
+        .innerRadius(10)
+        .dimension(pieDimension)
+        .group(pieDimensionGroup) // by default, pie charts will use group.key as the label
+        .renderLabel(true)
+        .label(function (d) {
+            return d.key;
+        });
+
+    dc.renderAll();
+    updateToolTip("path");
 }
 
 function createTimeSerieChart() {
@@ -206,6 +227,7 @@ function createBarChart(dimension) {
     updateToolTip("rect");
 }
 
+
 /* ************************************** */
 /* ************** TOOLTIP *************** */
 /* ************************************** */
@@ -221,7 +243,7 @@ function initToolTip() {
         .attr('class', 'd3-tip')
         .offset([-10,0])
         .html(function (d) {
-            return "<span class='d3-tipTitle'>" + d.data.key + " : </span>" + d.data.value.value;
+            return "<span class='d3-tipTitle'>" + d.data.key + " : </span>" + d.data.value;
         });
 }
 
@@ -275,13 +297,14 @@ function reset() {
     $("#selectedChart").empty();
     $("#selectedColumnYDetail").val("");
 
-    filteredDimension.filterAll();
+    if(filteredDimension)
+        filteredDimension.filterAll();
     dc.redrawAll();
-
-    initToolTip();
 }
 
 function init() {
+    initToolTip();
+
     $("#displayAllData").on("click", function() {
         $("#dataDiv").toggle();
     });
@@ -299,23 +322,18 @@ function init() {
         selectedChart = this.title;
 
         switch (selectedChart) {
-            case "pie":
-                $("#selectedColumnYDiv").removeClass("disabled");
-                $("#selectedColumnY").removeClass("disabled");
-                $("#selectedColumnYDetailDiv").removeClass("disabled");
-                $("#selectedColumnYDetail").removeClass("disabled");
+            case "pie" :
+            case "bar":
+                $("#selectedColumnYDiv").addClass("disabled");
+                $("#selectedColumnY").addClass("disabled");
+                $("#selectedColumnYDetailDiv").addClass("disabled");
+                $("#selectedColumnYDetail").addClass("disabled");
                 break;
             case "timeSerie":
                 $("#selectedColumnYDiv").removeClass("disabled");
                 $("#selectedColumnY").removeClass("disabled");
                 $("#selectedColumnYDetailDiv").removeClass("disabled");
                 $("#selectedColumnYDetail").removeClass("disabled");
-                break;
-            case "bar":
-                $("#selectedColumnYDiv").addClass("disabled");
-                $("#selectedColumnY").addClass("disabled");
-                $("#selectedColumnYDetailDiv").addClass("disabled");
-                $("#selectedColumnYDetail").addClass("disabled");
                 break;
         }
     });
