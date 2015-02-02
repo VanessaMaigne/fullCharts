@@ -21,8 +21,8 @@ var lastSelectedColumn = false;
 var barCharMargin = {top: 10, right: 0, bottom: 75, left: 35};
 var color = d3.scale.category20();
 var toolTip;
-var chartHeight = 250;
-var chartWidth = 600;
+var chartHeight = $("#leftMenu").height();
+var chartWidth = $("#chartContainer").width();
 var transitionDuration = 500;
 var format = d3.time.format("%d/%m/%Y_%H:%M");
 
@@ -59,10 +59,11 @@ function readFile(fileName) {
         createDataTable("#data-count", "#data-table", data, data.groupAll(), dimensionHeader);
 
 
-        selectedColumnX = "Temps";
-        selectedColumnY = "Bonbon";
-        selectedChart = "timeSerie";
-        createChart();
+//        selectedColumnX = "Temps";
+//        selectedColumnY = "Bonbon";
+//        selectedChart = "timeSerie";
+//        $("#selectedColumnYDetail").val("Michoko");
+//        createChart();
     });
 }
 
@@ -78,7 +79,7 @@ function selectColumn(title, columnId, columnLetter) {
 /* ************************************** */
 /* *************** CHARTS *************** */
 /* ************************************** */
-var valueIndexX, valueIndexY, xDomain, yDomain, isOrdinalX, isOrdinalY;
+var valueIndexX, valueIndexY, xDomain, yDomain, isOrdinalX, isOrdinalY, title, filteredDimension;
 
 function createChart() {
     if (!selectedColumnX || !selectedChart)
@@ -92,6 +93,24 @@ function createChart() {
     yDomain = new Array();
     isOrdinalX = false;
     isOrdinalY = false;
+
+    // Title
+    title = header[valueIndexY];
+    // Filter
+    var filterValue = $("#selectedColumnYDetail").val();
+    if(filteredDimension)
+        filteredDimension.filterAll();
+    if(filterValue != "" && filterValue != undefined)
+    {
+        filteredDimension = data.dimension(
+            function(d) {
+                return d[header[valueIndexY]];
+            }).filter(function(d){
+                if(d== filterValue)
+                    return d;
+            });
+        title = header[valueIndexY] + " : " + filterValue;
+    }
 
     switch (selectedChart) {
         case "pie":
@@ -113,38 +132,16 @@ function createPieChart() {
 }
 
 function createTimeSerieChart() {
-
     var dateArray = new Array();
+
     var timeDimension = data.dimension(
-            function(d) {
-                var value = d[header[valueIndexX]];
-                dateArray.push(format.parse(value));
-                return format.parse(value);
-            });
+        function(d) {
+            var value = d[header[valueIndexX]];
+            dateArray.push(format.parse(value));
+            return format.parse(value);
+        });
 
-    var timeDimensionGroup = timeDimension.group().reduceCount().filter(
-            function(d) {
-                console.log("ici : " + d.Bonbon);
-                if ("Mikado" == d.Bonbon) {
-                    console.log("ok");
-                    return d;
-                }
-            });
-
-//    var timeDimensionGroup = timeDimension.group().reduce(
-//            function(p, v) {
-//                if ("Mikado" == v.Bonbon)
-//                    p.value += 1;
-//                return p;
-//            },
-//            function(p, v) {
-//                if ("Mikado" == v.Bonbon)
-//                    p.value -= 1;
-//                return p;
-//            },
-//            function() {
-//                return { value : 0};
-//            });
+    var timeDimensionGroup = timeDimension.group().reduceCount();
 
     // Date domain
     var sortedDateArray = dateArray.sort(function(a, b) {
@@ -154,18 +151,19 @@ function createTimeSerieChart() {
     var maxDate = d3.time.hour.offset(sortedDateArray[sortedDateArray.length - 1], 6);
 
     dc.lineChart("#chartContainer")
-            .width(chartWidth)
-            .height(chartHeight)
-            .margins(barCharMargin)
-            .dimension(timeDimension)
-            .group(timeDimensionGroup)
-            .valueAccessor(function(d) {
-        return d.value;
-    })
-            .transitionDuration(transitionDuration)
-            .elasticY(true)
-            .x(d3.time.scale().domain([minDate,maxDate]))
-            .xAxis();
+        .width(chartWidth)
+        .height(chartHeight)
+        .margins(barCharMargin)
+        .dimension(timeDimension)
+        .group(timeDimensionGroup, title)
+        .valueAccessor(function(d) {
+            return d.value;
+        })
+        .transitionDuration(transitionDuration)
+        .elasticY(true)
+        .legend(dc.legend().x(800).y(10).itemHeight(13).gap(5))
+        .x(d3.time.scale().domain([minDate,maxDate]))
+        .xAxis();
 
     dc.renderAll();
 }
@@ -190,19 +188,19 @@ function createBarChart(dimension) {
     var group = dimension.group().reduceCount();
 
     dc.barChart("#chartContainer")
-            .height(chartHeight)
-            .width(chartWidth)
-            .transitionDuration(transitionDuration)
-            .margins(barCharMargin)
-            .dimension(dimension)
-            .group(group, "groupLayer")
-            .brushOn(false)
-            .gap(0)
-            .elasticY(true)
-            .xUnits(dc.units.ordinal)
-            .x(d3.scale.ordinal())
-            .y(d3.scale.linear())
-            .renderHorizontalGridLines(true);
+        .height(chartHeight)
+        .width(chartWidth)
+        .transitionDuration(transitionDuration)
+        .margins(barCharMargin)
+        .dimension(dimension)
+        .group(group, "groupLayer")
+        .brushOn(false)
+        .gap(0)
+        .elasticY(true)
+        .xUnits(dc.units.ordinal)
+        .x(d3.scale.ordinal())
+        .y(d3.scale.linear())
+        .renderHorizontalGridLines(true);
 
     dc.renderAll();
     updateToolTip("rect");
@@ -214,17 +212,17 @@ function createBarChart(dimension) {
 function updateToolTip(elementType) {
     d3.selectAll("#chartContainer " + elementType).call(toolTip);
     d3.selectAll("#chartContainer " + elementType)
-            .on('mouseover', toolTip.show)
-            .on('mouseout', toolTip.hide);
+        .on('mouseover', toolTip.show)
+        .on('mouseout', toolTip.hide);
 }
 
 function initToolTip() {
     toolTip = d3.tip()
-            .attr('class', 'd3-tip')
-            .offset([-10,0])
-            .html(function (d) {
-        return "<span class='d3-tipTitle'>" + d.data.key + " : </span>" + d.data.value.value;
-    });
+        .attr('class', 'd3-tip')
+        .offset([-10,0])
+        .html(function (d) {
+            return "<span class='d3-tipTitle'>" + d.data.key + " : </span>" + d.data.value.value;
+        });
 }
 
 
@@ -241,23 +239,23 @@ function createDataHeader() {
 
 function createDataTable(countId, tableId, allD, allG, tableD) {
     dc.dataCount(countId)
-            .dimension(allD)
-            .group(allG);
+        .dimension(allD)
+        .group(allG);
 
     dc.dataTable(tableId)
-            .dimension(tableD)
-            .group(function(d) {
-        var result = new Array();
-        $.each(header, function(i, dd) {
-            result.push(d[dd]);
+        .dimension(tableD)
+        .group(function(d) {
+            var result = new Array();
+            $.each(header, function(i, dd) {
+                result.push(d[dd]);
+            });
+            return result;
+        })
+        .size(allG.value())
+        .columns([false])
+        .renderlet(function (table) {
+            table.selectAll(".dc-table-group").classed("info", false);
         });
-        return result;
-    })
-            .size(allG.value())
-            .columns([false])
-            .renderlet(function (table) {
-        table.selectAll(".dc-table-group").classed("info", false);
-    });
 
     dc.renderAll();
 }
@@ -275,6 +273,10 @@ function reset() {
     $("#selectedColumnX").empty();
     $("#selectedColumnY").empty();
     $("#selectedChart").empty();
+    $("#selectedColumnYDetail").val("");
+
+    filteredDimension.filterAll();
+    dc.redrawAll();
 
     initToolTip();
 }
@@ -300,14 +302,20 @@ function init() {
             case "pie":
                 $("#selectedColumnYDiv").removeClass("disabled");
                 $("#selectedColumnY").removeClass("disabled");
+                $("#selectedColumnYDetailDiv").removeClass("disabled");
+                $("#selectedColumnYDetail").removeClass("disabled");
                 break;
             case "timeSerie":
                 $("#selectedColumnYDiv").removeClass("disabled");
                 $("#selectedColumnY").removeClass("disabled");
+                $("#selectedColumnYDetailDiv").removeClass("disabled");
+                $("#selectedColumnYDetail").removeClass("disabled");
                 break;
             case "bar":
                 $("#selectedColumnYDiv").addClass("disabled");
                 $("#selectedColumnY").addClass("disabled");
+                $("#selectedColumnYDetailDiv").addClass("disabled");
+                $("#selectedColumnYDetail").addClass("disabled");
                 break;
         }
     });
