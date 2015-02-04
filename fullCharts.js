@@ -315,6 +315,7 @@ function reset() {
 
     if (filteredDimension)
         filteredDimension.filterAll();
+    dc.filterAll();
     dc.redrawAll();
 }
 
@@ -335,7 +336,6 @@ function init() {
 
     $("#createChart2").on("click", function() {
         createChart2();
-
     });
 
     $("#createChart3").on("click", function() {
