@@ -113,17 +113,16 @@ function createChartForBoth(container) {
     title = header[valueIndexY];
     // Filter
     var filterValue = $("#selectedColumnYDetail").val();
-    if(filteredDimension)
+    if (filteredDimension)
         filteredDimension.filterAll();
-    if(filterValue != "" && filterValue != undefined)
-    {
+    if (filterValue != "" && filterValue != undefined) {
         filteredDimension = data.dimension(
-            function(d) {
-                return d[header[valueIndexY]];
-            }).filter(function(d){
-                if(d== filterValue)
-                    return d;
-            });
+                function(d) {
+                    return d[header[valueIndexY]];
+                }).filter(function(d) {
+            if (d == filterValue)
+                return d;
+        });
         title = header[valueIndexY] + " : " + filterValue;
     }
 
@@ -142,37 +141,37 @@ function createChartForBoth(container) {
 
 function createPieChart(container) {
     var pieDimension = data.dimension(
-        function(d) {
-            return d[header[valueIndexX]];
-        });
+            function(d) {
+                return d[header[valueIndexX]];
+            });
 
     var pieDimensionGroup = pieDimension.group().reduceCount();
 
     dc.pieChart(container)
-        .width(chartWidth)
-        .height(chartHeight)
-        .slicesCap(4)
-        .innerRadius(10)
-        .dimension(pieDimension)
-        .group(pieDimensionGroup) // by default, pie charts will use group.key as the label
-        .renderLabel(true)
-        .label(function (d) {
-            return d.key;
-        });
+            .width(chartWidth)
+            .height(chartHeight)
+            .slicesCap(4)
+            .innerRadius(10)
+            .dimension(pieDimension)
+            .group(pieDimensionGroup)// by default, pie charts will use group.key as the label
+            .renderLabel(true)
+            .label(function (d) {
+        return d.key;
+    });
 
     dc.renderAll();
-    updateToolTip("path");
+    updateCharts();
 }
 
 function createTimeSerieChart(container) {
     var dateArray = new Array();
 
     var timeDimension = data.dimension(
-        function(d) {
-            var value = d[header[valueIndexX]];
-            dateArray.push(format.parse(value));
-            return format.parse(value);
-        });
+            function(d) {
+                var value = d[header[valueIndexX]];
+                dateArray.push(format.parse(value));
+                return format.parse(value);
+            });
 
     var timeDimensionGroup = timeDimension.group().reduceCount();
 
@@ -180,25 +179,26 @@ function createTimeSerieChart(container) {
     var sortedDateArray = dateArray.sort(function(a, b) {
         return a.getTime() - b.getTime();
     });
-    var minDate = d3.time.hour.offset(sortedDateArray[0], -6);
-    var maxDate = d3.time.hour.offset(sortedDateArray[sortedDateArray.length - 1], 6);
+    var minDate = d3.time.hour.offset(sortedDateArray[0], -1);
+    var maxDate = d3.time.hour.offset(sortedDateArray[sortedDateArray.length - 1], 1);
 
     dc.lineChart(container)
-        .width(chartWidth)
-        .height(chartHeight)
-        .margins(barCharMargin)
-        .dimension(timeDimension)
-        .group(timeDimensionGroup, title)
-        .valueAccessor(function(d) {
-            return d.value;
-        })
-        .transitionDuration(transitionDuration)
-        .elasticY(true)
-        .legend(dc.legend().x(800).y(10).itemHeight(13).gap(5))
-        .x(d3.time.scale().domain([minDate,maxDate]))
-        .xAxis();
+            .width(chartWidth)
+            .height(chartHeight)
+            .margins(barCharMargin)
+            .dimension(timeDimension)
+            .group(timeDimensionGroup, title)
+            .valueAccessor(function(d) {
+        return d.value;
+    })
+            .transitionDuration(transitionDuration)
+            .elasticY(true)
+            .legend(dc.legend().x(800).y(10).itemHeight(13).gap(5))
+            .x(d3.time.scale().domain([minDate,maxDate]))
+            .xAxis();
 
     dc.renderAll();
+    updateCharts();
 }
 
 function createBarChart(container) {
@@ -221,47 +221,46 @@ function createBarChart(container) {
     var group = dimension.group().reduceCount();
 
     dc.barChart(container)
-        .height(chartHeight)
-        .width(chartWidth)
-        .transitionDuration(transitionDuration)
-        .margins(barCharMargin)
-        .dimension(dimension)
-        .group(group, "groupLayer")
-        .brushOn(false)
-        .gap(0)
-        .elasticY(true)
-        .xUnits(dc.units.ordinal)
-        .x(d3.scale.ordinal())
-        .y(d3.scale.linear())
-        .renderHorizontalGridLines(true);
+            .height(chartHeight)
+            .width(chartWidth)
+            .transitionDuration(transitionDuration)
+            .margins(barCharMargin)
+            .dimension(dimension)
+            .group(group, "groupLayer")
+            .brushOn(false)
+            .gap(0)
+            .elasticY(true)
+            .xUnits(dc.units.ordinal)
+            .x(d3.scale.ordinal())
+            .y(d3.scale.linear())
+            .renderHorizontalGridLines(true);
 
     dc.renderAll();
-    updateToolTip("rect");
+    updateCharts();
 }
 
+function updateCharts() {
+    $(".axis.x text").attr("transform", "translate(-15,25)rotate(270)");
+    updateToolTip();
+}
 
 /* ************************************** */
 /* ************** TOOLTIP *************** */
 /* ************************************** */
-function updateToolTip(elementType) {
-    d3.selectAll("#chartContainer " + elementType).call(toolTip);
-    d3.selectAll("#chartContainer " + elementType)
-        .on('mouseover', toolTip.show)
-        .on('mouseout', toolTip.hide);
-
-    d3.selectAll("#chartContainer2 " + elementType).call(toolTip);
-    d3.selectAll("#chartContainer2 " + elementType)
-        .on('mouseover', toolTip.show)
-        .on('mouseout', toolTip.hide);
+function updateToolTip() {
+    d3.selectAll("svg path, svg rect").call(toolTip);
+    d3.selectAll("svg path, svg rect")
+            .on('mouseover', toolTip.show)
+            .on('mouseout', toolTip.hide);
 }
 
 function initToolTip() {
     toolTip = d3.tip()
-        .attr('class', 'd3-tip')
-        .offset([-10,0])
-        .html(function (d) {
-            return "<span class='d3-tipTitle'>" + d.data.key + " : </span>" + d.data.value;
-        });
+            .attr('class', 'd3-tip')
+            .offset([-10,0])
+            .html(function (d) {
+        return "<span class='d3-tipTitle'>" + d.data.key + " : </span>" + d.data.value;
+    });
 }
 
 
@@ -278,23 +277,23 @@ function createDataHeader() {
 
 function createDataTable(countId, tableId, allD, allG, tableD) {
     dc.dataCount(countId)
-        .dimension(allD)
-        .group(allG);
+            .dimension(allD)
+            .group(allG);
 
     dc.dataTable(tableId)
-        .dimension(tableD)
-        .group(function(d) {
-            var result = new Array();
-            $.each(header, function(i, dd) {
-                result.push(d[dd]);
-            });
-            return result;
-        })
-        .size(allG.value())
-        .columns([false])
-        .renderlet(function (table) {
-            table.selectAll(".dc-table-group").classed("info", false);
+            .dimension(tableD)
+            .group(function(d) {
+        var result = new Array();
+        $.each(header, function(i, dd) {
+            result.push(d[dd]);
         });
+        return result;
+    })
+            .size(allG.value())
+            .columns([false])
+            .renderlet(function (table) {
+        table.selectAll(".dc-table-group").classed("info", false);
+    });
 
     dc.renderAll();
 }
@@ -314,7 +313,7 @@ function reset() {
     $("#selectedChart").empty();
     $("#selectedColumnYDetail").val("");
 
-    if(filteredDimension)
+    if (filteredDimension)
         filteredDimension.filterAll();
     dc.redrawAll();
 }
@@ -341,7 +340,7 @@ function init() {
 
     $("#createChart3").on("click", function() {
         camembert();
-});
+    });
 
     $(".imgChart").on("click", function() {
         $("#selectedChart").html(this.title);
