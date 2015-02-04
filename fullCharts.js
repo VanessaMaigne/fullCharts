@@ -84,11 +84,23 @@ function selectColumn(title, columnId, columnLetter) {
 /* ************************************** */
 var valueIndexX, valueIndexY, xDomain, yDomain, isOrdinalX, isOrdinalY, title, filteredDimension;
 
+function createChart2() {
+    createChartForBoth("#chartContainer2");
+}
+
 function createChart() {
+    createChartForBoth("#chartContainer");
+}
+
+function camembert() {
+    createChartForBoth("#chartContainer3");
+}
+
+function createChartForBoth(container) {
     if (!selectedColumnX || !selectedChart)
         return;
 
-    $("#chartContainer").empty();
+    $(container).empty();
 
     valueIndexX = header.indexOf(selectedColumnX);
     valueIndexY = header.indexOf(selectedColumnY);
@@ -117,18 +129,18 @@ function createChart() {
 
     switch (selectedChart) {
         case "pie":
-            createPieChart();
+            createPieChart(container);
             break;
         case "timeSerie":
-            createTimeSerieChart();
+            createTimeSerieChart(container);
             break;
         case "bar":
-            createBarChart();
+            createBarChart(container);
             break;
     }
 }
 
-function createPieChart() {
+function createPieChart(container) {
     var pieDimension = data.dimension(
         function(d) {
             return d[header[valueIndexX]];
@@ -136,7 +148,7 @@ function createPieChart() {
 
     var pieDimensionGroup = pieDimension.group().reduceCount();
 
-    dc.pieChart("#chartContainer")
+    dc.pieChart(container)
         .width(chartWidth)
         .height(chartHeight)
         .slicesCap(4)
@@ -152,7 +164,7 @@ function createPieChart() {
     updateToolTip("path");
 }
 
-function createTimeSerieChart() {
+function createTimeSerieChart(container) {
     var dateArray = new Array();
 
     var timeDimension = data.dimension(
@@ -171,7 +183,7 @@ function createTimeSerieChart() {
     var minDate = d3.time.hour.offset(sortedDateArray[0], -6);
     var maxDate = d3.time.hour.offset(sortedDateArray[sortedDateArray.length - 1], 6);
 
-    dc.lineChart("#chartContainer")
+    dc.lineChart(container)
         .width(chartWidth)
         .height(chartHeight)
         .margins(barCharMargin)
@@ -189,7 +201,7 @@ function createTimeSerieChart() {
     dc.renderAll();
 }
 
-function createBarChart(dimension) {
+function createBarChart(container) {
     // Dimension, xDomain & yDomain
     var dimension = data.dimension(function (d) {
         var valueX = d[header[valueIndexX]];
@@ -208,7 +220,7 @@ function createBarChart(dimension) {
 
     var group = dimension.group().reduceCount();
 
-    dc.barChart("#chartContainer")
+    dc.barChart(container)
         .height(chartHeight)
         .width(chartWidth)
         .transitionDuration(transitionDuration)
@@ -234,6 +246,11 @@ function createBarChart(dimension) {
 function updateToolTip(elementType) {
     d3.selectAll("#chartContainer " + elementType).call(toolTip);
     d3.selectAll("#chartContainer " + elementType)
+        .on('mouseover', toolTip.show)
+        .on('mouseout', toolTip.hide);
+
+    d3.selectAll("#chartContainer2 " + elementType).call(toolTip);
+    d3.selectAll("#chartContainer2 " + elementType)
         .on('mouseover', toolTip.show)
         .on('mouseout', toolTip.hide);
 }
@@ -316,6 +333,15 @@ function init() {
     $("#createChart").on("click", function() {
         createChart();
     });
+
+    $("#createChart2").on("click", function() {
+        createChart2();
+
+    });
+
+    $("#createChart3").on("click", function() {
+        camembert();
+});
 
     $(".imgChart").on("click", function() {
         $("#selectedChart").html(this.title);
