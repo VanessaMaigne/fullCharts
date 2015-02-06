@@ -244,6 +244,7 @@ function updateCharts() {
     updateToolTip();
 }
 
+
 /* ************************************** */
 /* ************** TOOLTIP *************** */
 /* ************************************** */
@@ -308,12 +309,14 @@ function reset() {
     lastSelectedColumn = false;
 
     $("#chartContainer").empty();
+    $("#chartContainer2").empty();
+    $("#chartContainer3").empty();
     $("#selectedColumnX").empty();
     $("#selectedColumnY").empty();
     $("#selectedChart").empty();
     $("#selectedColumnYDetail").val("");
 
-    if (filteredDimension)
+    if(filteredDimension)
         filteredDimension.filterAll();
     dc.filterAll();
     dc.redrawAll();
