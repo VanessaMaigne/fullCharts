@@ -52,6 +52,7 @@ function readFile(fileName) {
         });
 
         createDataHeader();
+        selectColumn("poste", "#selectedColumnX", "X");
 
         // Data
         data = crossfilter(csv);
@@ -348,4 +349,5 @@ function init() {
                 break;
         }
     });
+    $("#pie").click();
 }
